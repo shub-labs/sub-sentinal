@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SubSentinel — AI Subscription Guardian | SIH 2026 HACK-13</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: { 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+            accent: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed' },
+            danger: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' },
+            success: { 400: '#4ade80', 500: '#22c55e', 600: '#16a34a' },
+            warn: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+            dark: { 800: '#1e293b', 850: '#131c2f', 900: '#0f172a', 950: '#080f1f' }
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #080f1f;
+      color: #e2e8f0;
+    }
+
+    /* Gradient backgrounds */
+    .bg-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    }
+
+    .bg-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .bg-card-hover:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-1px);
+      transition: all 0.2s;
+    }
+
+    /* Glow effects */
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 12px rgba(244, 63, 94, 0.4)
+      }
+
+      50% {
+        box-shadow: 0 0 24px rgba(244, 63, 94, 0.7)
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes scanLine {
+      0% {
+        top: -100%
+      }
+
+      100% {
+        top: 100%
+      }
+    }
+
+    .vampire-pulse {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+
+    .slide-in {
+      animation: slideIn 0.4s ease forwards;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease forwards;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Threat score bar */
+    .threat-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #1e293b;
+      overflow: hidden;
+    }
+
+    .threat-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease;
+    }
+
+    /* Status badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-active {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-danger {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .badge-cancelled {
+      background: rgba(100, 116, 139, 0.15);
+      color: #94a3b8;
+      border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+
+    .badge-trial {
+      background: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    /* KPI card gradient accents */
+    .kpi-blue {
+      border-top: 3px solid #3b82f6;
+    }
+
+    .kpi-purple {
+      border-top: 3px solid #8b5cf6;
+    }
+
+    .kpi-red {
+      border-top: 3px solid #f43f5e;
+    }
+
+    .kpi-green {
+      border-top: 3px solid #22c55e;
+    }
+
+    .kpi-amber {
+      border-top: 3px solid #f59e0b;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: none;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s;
+    }
+
+    .modal-box {
+      width: 90%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    /* Nav */
+    .nav-link {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover {
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-link.active {
+      color: #60a5fa;
+      background: rgba(59, 130, 246, 0.12);
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      background: #131c2f;
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      text-align: left;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover {
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    /* Consent gate */
+    .consent-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+
+    /* Scan animation for hero */
+    .scan-effect {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scan-effect::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+      animation: scanLine 3s linear infinite;
+    }
+
+    /* Gradient text */
+    .gradient-text {
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .gradient-text-green {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Tag chip */
+    .chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    /* Toast */
+    #toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+      max-width: 340px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toast-success {
+      background: #052e16;
+      border: 1px solid #166534;
+      color: #4ade80;
+    }
+
+    .toast-error {
+      background: #2d0820;
+      border: 1px solid #7f1d1d;
+      color: #fca5a5;
+    }
+
+    .toast-info {
+      background: #0c1445;
+      border: 1px solid #1e3a8a;
+      color: #93c5fd;
+    }
+
+    .toast-warn {
+      background: #2d1b00;
+      border: 1px solid #78350f;
+      color: #fcd34d;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 16px 0;
+    }
+
+    /* Certificate */
+    .cert-box {
+      background: linear-gradient(135deg, #0a1628, #0f1f3d);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .cert-box::before {
+      content: 'VERIFIED';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      color: #3b82f6;
+      opacity: 0.5;
+    }
+
+    /* Progress ring for vampire score */
+    .score-ring {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .score-ring .score-text {
+      position: absolute;
+      font-size: 20px;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+
+  <!-- ═══════════════════════════════ NAVBAR ═══════════════════════════════ -->
+  <nav class="sticky top-0 z-40 border-b border-white/5"
+    style="background:rgba(8,15,31,0.92);backdrop-filter:blur(20px)">
+    <div class="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center"
+          style="background:linear-gradient(135deg,#3b82f6,#8b5cf6)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-white font-bold text-base leading-none">SubSentinel</div>
+          <div class="text-blue-400 text-[10px] font-medium leading-none mt-0.5">AI Subscription Guardian</div>
+        </div>
+      </div>
+
+      <!-- Nav links -->
+      <div class="hidden md:flex items-center gap-1">
+        <span class="nav-link active" onclick="showSection('dashboard')">Dashboard</span>
+        <span class="nav-link" onclick="showSection('analytics')">Analytics</span>
+        <span class="nav-link" onclick="showSection('alerts')">Alerts</span>
+        <span class="nav-link" onclick="showSection('audit')">Audit Log</span>
+      </div>
+
+      <!-- Right side -->
+      <div class="flex items-center gap-2">
+        <span
+          class="hidden sm:inline text-[10px] font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-2 py-1 rounded">HACK-13</span>
+        <button onclick="openGeminiModal()"
+          class="flex items-center gap-1.5 bg-gradient-to-r from-purple-900/50 to-blue-900/50 hover:from-purple-800/60 hover:to-blue-800/60 text-purple-200 text-xs font-semibold px-3 py-1.5 rounded-lg border border-purple-500/40 transition-all shadow-sm">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-300"></i> Gemini AI
+        </button>
+        <button onclick="openStatementModal()"
+          class="flex items-center gap-1.5 bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          <i data-lucide="upload" class="w-3.5 h-3.5"></i> Import
+        </button>
+        <button onclick="openArchitectureModal()"
+          class="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors border border-white/10">
+          <i data-lucide="layout" class="w-3.5 h-3.5"></i> Blueprint
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════ HERO BANNER ═══════════════════════════ -->
+  <div class="scan-effect"
+    style="background:linear-gradient(135deg,#080f1f 0%,#0d1d3f 40%,#130924 100%);border-bottom:1px solid rgba(255,255,255,0.05)">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="chip bg-blue-900/60 text-blue-400 border border-blue-700/50">NLP-POWERED</span>
+            <span class="chip bg-purple-900/60 text-purple-400 border border-purple-700/50">PATTERN RECOGNITION</span>
+            <span class="chip bg-red-900/60 text-red-400 border border-red-700/50">VAMPIRE DETECTOR</span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-white mb-1">
+            <span class="gradient-text">AI-Powered Subscription</span><br>Intelligence Platform
+          </h1>
+          <p class="text-slate-400 text-sm max-w-lg">Automatically detects recurring charges, predicts renewal dates,
+            and executes cancellations — always with your explicit consent. DPDP Act 2023 · RBI e-Mandate compliant.</p>
+        </div>
+
+        <!-- Quick load profiles -->
+        <div class="flex-shrink-0">
+          <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Quick Load Demo Profile</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="loadSampleProfile('tech_enthusiast')"
+              class="text-left p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-blue-900/30 hover:border-blue-700/50 transition-all text-xs">
+              <div class="font-semibold text-white mb-0.5">Tech Enthusiast</div>
+              <div class="text-slate-400">15 subs · ₹4,200/mo</div>
+            </button>
+            <button onclick="loadSampleProfile('indian_consumer')"
+              class="text-left p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-purple-900/30 hover:border-purple-700/50 transition-all text-xs">
+              <div class="font-semibold text-white mb-0.5">Indian Consumer</div>
+              <div class="text-slate-400">HDFC · UPI · INR</div>
+            </button>
+            <button onclick="loadSampleProfile('freelancer_creator')"
+              class="text-left p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-amber-900/30 hover:border-amber-700/50 transition-all text-xs">
+              <div class="font-semibold text-white mb-0.5">Freelancer</div>
+              <div class="text-slate-400">Adobe · Figma · AWS</div>
+            </button>
+            <button onclick="loadSampleProfile('student_budget')"
+              class="text-left p-3 rounded-lg border border-white/10 bg-white/5 hover:bg-green-900/30 hover:border-green-700/50 transition-all text-xs">
+              <div class="font-semibold text-white mb-0.5">Student Budget</div>
+              <div class="text-slate-400">Trial traps · NordVPN</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ MAIN CONTENT ═══════════════════════════ -->
+  <div class="max-w-7xl mx-auto px-4 py-6" id="main-content">
+
+    <!-- Loading state -->
+    <div id="loading-state" class="flex flex-col items-center justify-center py-20 gap-4">
+      <div class="spinner w-10 h-10 border-4"></div>
+      <p class="text-slate-400 text-sm">Scanning transactions with NLP engine...</p>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="section-dashboard" class="hidden">
+
+      <!-- KPI Cards Row -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="kpi-grid">
+        <div class="bg-card rounded-xl p-4 kpi-blue">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Active Subs</span>
+            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <i data-lucide="layers" class="w-4 h-4 text-blue-400"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-white" id="kpi-count">—</div>
+          <div class="text-slate-500 text-xs mt-1" id="kpi-count-sub">Loading...</div>
+        </div>
+        <div class="bg-card rounded-xl p-4 kpi-red">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Monthly Drain</span>
+            <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+              <i data-lucide="trending-down" class="w-4 h-4 text-red-400"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-red-400" id="kpi-monthly">—</div>
+          <div class="text-slate-500 text-xs mt-1" id="kpi-monthly-sub">Annual: —</div>
+        </div>
+        <div class="bg-card rounded-xl p-4 kpi-purple">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Vampire Threats</span>
+            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-purple-400"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-purple-400" id="kpi-threats">—</div>
+          <div class="text-slate-500 text-xs mt-1" id="kpi-threats-sub">High risk burn</div>
+        </div>
+        <div class="bg-card rounded-xl p-4 kpi-green">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Cost Eliminated</span>
+            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <i data-lucide="shield-check" class="w-4 h-4 text-green-400"></i>
+            </div>
+          </div>
+          <div class="text-3xl font-bold text-green-400" id="kpi-saved">₹0</div>
+          <div class="text-slate-500 text-xs mt-1" id="kpi-saved-sub">Annual: ₹0</div>
+        </div>
+      </div>
+
+      <!-- Alert Banner -->
+      <div id="alert-banner"
+        class="hidden mb-4 p-4 rounded-xl border border-red-800/50 bg-red-950/30 flex items-center gap-3">
+        <div class="vampire-pulse w-9 h-9 rounded-full bg-red-900/50 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="zap" class="w-4 h-4 text-red-400"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-red-300 font-semibold text-sm" id="alert-banner-title">Renewal Alert</div>
+          <div class="text-red-400/70 text-xs" id="alert-banner-body"></div>
+        </div>
+        <button onclick="document.getElementById('alert-banner').classList.add('hidden')"
+          class="text-slate-500 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Main Grid: Table + Sidebar -->
+      <div class="flex gap-4 flex-col lg:flex-row">
+
+        <!-- Left: Subscriptions Table -->
+        <div class="flex-1 min-w-0">
+          <!-- Toolbar -->
+          <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+            <div class="flex items-center gap-2 flex-wrap">
+              <button onclick="setFilter('all')" id="flt-all"
+                class="filter-btn active text-xs px-3 py-1.5 rounded-lg font-medium bg-blue-600 text-white">All</button>
+              <button onclick="setFilter('active')" id="flt-active"
+                class="filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-white/5 text-slate-400 hover:bg-white/10">Active</button>
+              <button onclick="setFilter('high')" id="flt-high"
+                class="filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-white/5 text-slate-400 hover:bg-white/10">High
+                Risk</button>
+              <button onclick="setFilter('trial')" id="flt-trial"
+                class="filter-btn text-xs px-3 py-1.5 rounded-lg font-medium bg-white/5 text-slate-400 hover:bg-white/10">Trial
+                Traps</button>
+            </div>
+            <div class="relative">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+              <input id="search-input" type="text" placeholder="Search merchant..." oninput="applySearch(this.value)"
+                class="bg-white/5 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-300 placeholder-slate-600 w-44 focus:outline-none focus:border-blue-500/50">
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="bg-card rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Merchant</th>
+                    <th>Amount</th>
+                    <th>Next Renewal</th>
+                    <th>Threat Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subs-table-body">
+                  <tr>
+                    <td colspan="6" class="text-center text-slate-500 py-10">Loading subscriptions...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="empty-state" class="hidden text-center py-12 text-slate-500">
+            <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+            <p class="text-sm">No subscriptions found. Import a bank statement or load a demo profile.</p>
+          </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="w-full lg:w-64 flex-shrink-0 space-y-3">
+
+          <!-- PII Privacy Shield -->
+          <div class="bg-card rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="lock" class="w-4 h-4 text-blue-400"></i>
+              <span class="text-sm font-semibold text-white">Privacy Shield</span>
+              <span
+                class="ml-auto text-[10px] text-green-400 bg-green-900/30 px-2 py-0.5 rounded font-semibold">ACTIVE</span>
+            </div>
+            <div class="space-y-2" id="pii-metrics">
+              <div class="flex justify-between text-xs"><span class="text-slate-400">Card numbers</span><span
+                  class="text-green-400 font-semibold" id="pii-cc">—</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-400">Emails</span><span
+                  class="text-green-400 font-semibold" id="pii-email">—</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-400">Phone numbers</span><span
+                  class="text-green-400 font-semibold" id="pii-phone">—</span></div>
+              <div class="flex justify-between text-xs"><span class="text-slate-400">Account numbers</span><span
+                  class="text-green-400 font-semibold" id="pii-acct">—</span></div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500">DPDP Act 2023 · RBI e-Mandate
+              compliant</div>
+          </div>
+
+          <!-- Compliance -->
+          <div class="bg-card rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="file-check" class="w-4 h-4 text-purple-400"></i>
+              <span class="text-sm font-semibold text-white">Compliance</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div><span class="text-slate-300">DPDP Act
+                  2023</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div><span class="text-slate-300">RBI
+                  e-Mandate</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div><span class="text-slate-300">NPCI UPI
+                  Rails</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-400"></div><span class="text-slate-300">ToS-Compliant
+                  Agent</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vampire Threat Meter -->
+          <div class="bg-card rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="activity" class="w-4 h-4 text-red-400"></i>
+              <span class="text-sm font-semibold text-white">Threat Distribution</span>
+            </div>
+            <div class="space-y-2" id="threat-dist">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400 w-12">Critical</span>
+                <div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div id="dist-critical" class="h-full bg-red-500 rounded-full" style="width:0%"></div>
+                </div>
+                <span class="text-slate-400 w-6 text-right" id="dist-critical-n">0</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400 w-12">High</span>
+                <div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div id="dist-high" class="h-full bg-orange-500 rounded-full" style="width:0%"></div>
+                </div>
+                <span class="text-slate-400 w-6 text-right" id="dist-high-n">0</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400 w-12">Medium</span>
+                <div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div id="dist-medium" class="h-full bg-yellow-500 rounded-full" style="width:0%"></div>
+                </div>
+                <span class="text-slate-400 w-6 text-right" id="dist-medium-n">0</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="text-slate-400 w-12">Safe</span>
+                <div class="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div id="dist-safe" class="h-full bg-green-500 rounded-full" style="width:0%"></div>
+                </div>
+                <span class="text-slate-400 w-6 text-right" id="dist-safe-n">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- NLP Tech Stack -->
+          <div class="bg-card rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="cpu" class="w-4 h-4 text-accent-400"></i>
+              <span class="text-sm font-semibold text-white">NLP Engine</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="text-xs text-slate-400 flex justify-between"><span>Pattern Recognizer</span><span
+                  class="text-blue-400">Active</span></div>
+              <div class="text-xs text-slate-400 flex justify-between"><span>PII Scrubber</span><span
+                  class="text-green-400">Active</span></div>
+              <div class="text-xs text-slate-400 flex justify-between"><span>Vampire Scorer</span><span
+                  class="text-red-400">Active</span></div>
+              <div class="text-xs text-slate-400 flex justify-between"><span>Renewal Predictor</span><span
+                  class="text-purple-400">Active</span></div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-white/5 text-[10px] text-slate-500 flex items-center gap-1">
+              <div class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+              All NLP modules operational
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div id="section-analytics" class="hidden">
+      <h2 class="text-lg font-bold text-white mb-4">Spending Analytics</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-card rounded-xl p-4">
+          <h3 class="text-sm font-semibold text-slate-300 mb-4">Spending by Category</h3>
+          <div style="height:240px;position:relative"><canvas id="categoryChart"></canvas></div>
+        </div>
+        <div class="bg-card rounded-xl p-4">
+          <h3 class="text-sm font-semibold text-slate-300 mb-4">Vampire Threat Score Distribution</h3>
+          <div style="height:240px;position:relative"><canvas id="threatChart"></canvas></div>
+        </div>
+        <div class="bg-card rounded-xl p-4 md:col-span-2">
+          <h3 class="text-sm font-semibold text-slate-300 mb-4">Monthly Cost Forecast (12 months)</h3>
+          <div style="height:200px;position:relative"><canvas id="forecastChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts Section -->
+    <div id="section-alerts" class="hidden">
+      <h2 class="text-lg font-bold text-white mb-4">Renewal Alert Center</h2>
+      <div id="alert-list" class="space-y-3">
+        <div class="text-slate-500 text-sm text-center py-8">No alerts dispatched yet. Go to Dashboard and click the
+          bell icon on any subscription.</div>
+      </div>
+    </div>
+
+    <!-- Audit Log Section -->
+    <div id="section-audit" class="hidden">
+      <h2 class="text-lg font-bold text-white mb-4">Audit Trail & Compliance Log</h2>
+      <div class="bg-card rounded-xl overflow-hidden">
+        <div id="audit-table-body" class="divide-y divide-white/5">
+          <div class="text-slate-500 text-sm text-center py-8">No audit events yet. Execute a cancellation to generate
+            audit records.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ TOAST CONTAINER ═══════════════ -->
+  <div id="toast-container"></div>
+
+  <!-- ═══════════════ CANCEL INTENT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="cancel-modal">
+    <div class="modal-box bg-card rounded-2xl p-6 slide-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white">Cancellation Authorization Gate</h2>
+        <button onclick="closeModal('cancel-modal')" class="text-slate-500 hover:text-white"><i data-lucide="x"
+            class="w-5 h-5"></i></button>
+      </div>
+
+      <!-- Subscription info -->
+      <div class="bg-dark-900 rounded-xl p-4 mb-4" id="cancel-sub-info">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-900/40 flex items-center justify-center flex-shrink-0">
+            <i data-lucide="alert-octagon" class="w-5 h-5 text-red-400"></i>
+          </div>
+          <div>
+            <div class="text-white font-semibold" id="cancel-merchant-name">—</div>
+            <div class="text-slate-400 text-sm" id="cancel-sub-detail">Loading details...</div>
+            <div class="flex gap-2 mt-2 flex-wrap">
+              <span class="chip bg-red-900/40 text-red-300" id="cancel-amount-chip">—</span>
+              <span class="chip bg-blue-900/40 text-blue-300" id="cancel-renewal-chip">—</span>
+              <span class="chip bg-purple-900/40 text-purple-300" id="cancel-threat-chip">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-Gate Authorization -->
+      <div class="space-y-3 mb-4">
+        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Required Authorization (3-Gate
+          Protocol)</p>
+
+        <label
+          class="flex items-start gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-blue-500/30 hover:bg-blue-950/10">
+          <input type="checkbox" id="consent-check-1" class="consent-checkbox mt-0.5">
+          <div>
+            <div class="text-sm text-slate-200 font-medium">I authorize SubSentinel to initiate cancellation</div>
+            <div class="text-xs text-slate-500">Single-use token will be generated for this action only</div>
+          </div>
+        </label>
+
+        <label
+          class="flex items-start gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-blue-500/30 hover:bg-blue-950/10">
+          <input type="checkbox" id="consent-check-2" class="consent-checkbox mt-0.5">
+          <div>
+            <div class="text-sm text-slate-200 font-medium">I understand this action will stop future renewals</div>
+            <div class="text-xs text-slate-500">Compliant with subscription provider's ToS</div>
+          </div>
+        </label>
+
+        <div class="p-3 rounded-lg border border-white/10 bg-white/2">
+          <div class="text-xs text-slate-400 font-medium mb-1">Digital Signature (Type your full name)</div>
+          <input type="text" id="consent-signature" placeholder="e.g. Gaurav Sharma"
+            class="w-full bg-transparent border-b border-white/20 text-white text-sm py-1 focus:outline-none focus:border-blue-400 placeholder-slate-600">
+        </div>
+
+        <div class="p-3 rounded-lg border border-white/10 bg-white/2">
+          <div class="text-xs text-slate-400 font-medium mb-1">Reason for Cancellation</div>
+          <select id="cancel-reason" class="w-full bg-dark-900 text-slate-300 text-sm py-1 focus:outline-none border-0">
+            <option value="Vampire cost elimination">Vampire cost elimination</option>
+            <option value="Unused subscription">Unused subscription</option>
+            <option value="Trial period expired">Trial period expired — no value</option>
+            <option value="Price increase objection">Unacceptable price increase</option>
+            <option value="Found better alternative">Found better alternative</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="closeModal('cancel-modal')"
+          class="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-semibold py-2.5 rounded-xl transition-colors">Cancel</button>
+        <button onclick="executeAuthorizedCancellation()" id="execute-cancel-btn"
+          class="flex-1 bg-red-600 hover:bg-red-500 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="shield-off" class="w-4 h-4"></i> Authorize & Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ CERTIFICATE MODAL ═══════════════ -->
+  <div class="modal-overlay" id="cert-modal">
+    <div class="modal-box bg-card rounded-2xl p-6 slide-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white">Cancellation Certificate</h2>
+        <button onclick="closeModal('cert-modal')" class="text-slate-500 hover:text-white"><i data-lucide="x"
+            class="w-5 h-5"></i></button>
+      </div>
+      <div class="cert-box mb-4">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="shield-check" class="w-5 h-5 text-green-400"></i>
+          <span class="text-green-400 font-bold text-sm">CANCELLATION EXECUTED & CERTIFIED</span>
+        </div>
+        <div id="cert-content" class="space-y-2 text-xs text-slate-300 font-mono"></div>
+      </div>
+      <button onclick="closeModal('cert-modal')"
+        class="w-full bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ STATEMENT IMPORT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="statement-modal">
+    <div class="modal-box bg-card rounded-2xl p-6 slide-in">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-white">Import Bank Statement</h2>
+        <button onclick="closeModal('statement-modal')" class="text-slate-500 hover:text-white"><i data-lucide="x"
+            class="w-5 h-5"></i></button>
+      </div>
+      <p class="text-slate-400 text-xs mb-3">Paste your bank statement text or CSV. PII (card numbers, emails, phone) is
+        scrubbed before NLP analysis.</p>
+
+      <!-- Preset fill buttons -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button onclick="fillPreset('hdfc')"
+          class="text-xs py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">HDFC
+          Bank (INR)</button>
+        <button onclick="fillPreset('sbi')"
+          class="text-xs py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">SBI
+          Statement</button>
+        <button onclick="fillPreset('upi')"
+          class="text-xs py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">UPI
+          Transaction Log</button>
+        <button onclick="fillPreset('intl')"
+          class="text-xs py-2 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10">International
+          (USD)</button>
+      </div>
+
+      <textarea id="statement-textarea" rows="8" placeholder="Paste CSV or bank text here...
+Example:
+2024-01-15,Netflix Subscription,₹649
+2024-01-18,Spotify Premium,₹119
+2024-01-20,Amazon Prime,₹1499"
+        class="w-full bg-dark-900 border border-white/10 rounded-xl p-3 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 resize-none font-mono"></textarea>
+
+      <div class="flex gap-3 mt-4">
+        <button onclick="closeModal('statement-modal')"
+          class="flex-1 bg-white/5 text-slate-400 text-sm font-semibold py-2.5 rounded-xl hover:bg-white/10">Cancel</button>
+        <button onclick="parseStatement()"
+          class="flex-1 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4"></i> Analyze with NLP
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ BLUEPRINT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="arch-modal">
+    <div class="modal-box rounded-2xl overflow-hidden slide-in"
+      style="max-width:680px;background:#0f172a;border:1px solid rgba(255,255,255,0.08)">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#1e1b4b,#0f172a)" class="p-5 border-b border-white/5">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-[10px] text-blue-400 font-semibold tracking-widest uppercase mb-1">SIH 2026 · HACK-13 ·
+              SubSentinel</div>
+            <h2 class="text-lg font-bold text-white">System Architecture Blueprint</h2>
+          </div>
+          <button onclick="closeModal('arch-modal')" class="text-slate-500 hover:text-white"><i data-lucide="x"
+              class="w-5 h-5"></i></button>
+        </div>
+        <!-- Tabs -->
+        <div class="flex gap-1 mt-4 flex-wrap">
+          <button onclick="switchBlueprintTab(0)" id="btab-0"
+            class="btab active text-xs px-3 py-1.5 rounded-lg font-medium">System Flow</button>
+          <button onclick="switchBlueprintTab(1)" id="btab-1"
+            class="btab text-xs px-3 py-1.5 rounded-lg font-medium">Tech Stack</button>
+          <button onclick="switchBlueprintTab(2)" id="btab-2"
+            class="btab text-xs px-3 py-1.5 rounded-lg font-medium">Regulations</button>
+          <button onclick="switchBlueprintTab(3)" id="btab-3"
+            class="btab text-xs px-3 py-1.5 rounded-lg font-medium">Impact Metrics</button>
+          <button onclick="switchBlueprintTab(4)" id="btab-4"
+            class="btab text-xs px-3 py-1.5 rounded-lg font-medium">Benchmarks</button>
+        </div>
+      </div>
+
+      <!-- Tab content -->
+      <div class="p-5 text-sm text-slate-300" id="blueprint-content">Loading...</div>
+
+      <div class="px-5 pb-5">
+        <button onclick="closeModal('arch-modal')"
+          class="w-full bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold py-2.5 rounded-xl">Close
+          Blueprint</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .btab {
+      background: rgba(255, 255, 255, 0.04);
+      color: #94a3b8;
+    }
+
+    .btab.active {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
+
+    .btab:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+    }
+  </style>
+
+  <!-- ═══════════════ GEMINI AI ASSISTANT MODAL ═══════════════ -->
+  <div class="modal-overlay" id="gemini-modal">
+    <div class="modal-box rounded-2xl overflow-hidden slide-in"
+      style="max-width:680px;background:#0f172a;border:1px solid rgba(168,85,247,0.3);box-shadow:0 0 30px rgba(168,85,247,0.15)">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#2e1065,#1e1b4b,#0f172a)" class="p-5 border-b border-white/5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div
+              class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-purple-400 font-semibold tracking-widest uppercase">Google Gemini 2.5 / 2.0
+                Engine</div>
+              <h2 class="text-base font-bold text-white">SubSentinel AI Assistant & Auditor</h2>
+            </div>
+          </div>
+          <button onclick="closeModal('gemini-modal')" class="text-slate-500 hover:text-white"><i data-lucide="x"
+              class="w-5 h-5"></i></button>
+        </div>
+
+        <!-- Quick Sub-Tabs -->
+        <div class="flex gap-2 mt-4">
+          <button onclick="switchGeminiTab('chat')" id="gtab-chat"
+            class="text-xs px-3 py-1.5 rounded-lg font-medium bg-purple-600 text-white transition-all">AI Chat</button>
+          <button onclick="switchGeminiTab('analysis')" id="gtab-analysis"
+            class="text-xs px-3 py-1.5 rounded-lg font-medium bg-white/5 text-slate-400 hover:bg-white/10 transition-all">Subscription
+            Auditor</button>
+          <button onclick="switchGeminiTab('key')" id="gtab-key"
+            class="text-xs px-3 py-1.5 rounded-lg font-medium bg-white/5 text-slate-400 hover:bg-white/10 transition-all">API
+            Key & Status</button>
+        </div>
+      </div>
+
+      <!-- Chat Tab -->
+      <div id="gsec-chat" class="p-5 space-y-4">
+        <div id="gemini-chat-history" class="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <div class="flex items-start gap-2.5">
+            <div
+              class="w-6 h-6 rounded bg-purple-900/50 border border-purple-700/50 flex items-center justify-center text-[10px] font-bold text-purple-300 flex-shrink-0">
+              AI</div>
+            <div class="bg-white/5 rounded-xl p-3 text-xs text-slate-300 max-w-[85%] border border-white/5">
+              Namaste! I am your <b>SubSentinel AI Guardian</b>. Ask me anything about your subscriptions, legal rights
+              under RBI e-Mandate circulars, or which services you can safely cancel to save money.
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <input type="text" id="gemini-chat-input"
+            placeholder="e.g. How can I eliminate ₹2,000 in monthly vampire drain?"
+            onkeydown="if(event.key==='Enter') sendGeminiChat()"
+            class="flex-1 bg-dark-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500/50">
+          <button onclick="sendGeminiChat()" id="gemini-chat-send-btn"
+            class="bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Analysis Tab -->
+      <div id="gsec-analysis" class="p-5 space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Deep AI Contract & Dark Pattern Audit
+          </p>
+          <span id="gemini-analysis-source"
+            class="chip bg-purple-900/40 text-purple-300 border border-purple-700/50">Ready</span>
+        </div>
+        <div id="gemini-analysis-box"
+          class="bg-dark-900 rounded-xl p-4 text-xs text-slate-300 border border-white/5 max-h-80 overflow-y-auto whitespace-pre-wrap font-sans leading-relaxed">
+          Select a subscription from the dashboard or click the ✨ icon next to any subscription row to run a deep AI
+          audit with Gemini!
+        </div>
+        <div class="flex gap-2">
+          <button onclick="draftAiCancellationLetter()"
+            class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 text-purple-400"></i> Draft Legal Revocation Letter
+          </button>
+        </div>
+      </div>
+
+      <!-- Key Settings Tab -->
+      <div id="gsec-key" class="p-5 space-y-4 hidden">
+        <div class="bg-purple-950/30 border border-purple-800/40 rounded-xl p-4 text-xs text-slate-300 space-y-2">
+          <div class="font-semibold text-purple-300 flex items-center gap-1.5">
+            <i data-lucide="key" class="w-4 h-4"></i> Google Gemini API Integration Status
+          </div>
+          <p class="text-slate-400">SubSentinel works out-of-the-box using the built-in AI intelligence layer.
+            Connecting a Gemini API Key enables real-time generation with Google Gemini 2.5 / 2.0.</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs text-slate-400 font-medium">Google Gemini API Key (Optional)</label>
+          <input type="password" id="gemini-key-input" placeholder="AIzaSy..."
+            class="w-full bg-dark-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-purple-500/50 font-mono">
+          <p class="text-[11px] text-slate-500">Stored safely in your local browser storage. Never exposed or stored
+            publicly.</p>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="saveGeminiKey()"
+            class="flex-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold py-2 rounded-xl transition-colors">
+            Save & Activate API Key
+          </button>
+          <button onclick="clearGeminiKey()"
+            class="bg-white/5 hover:bg-white/10 text-slate-400 text-xs font-semibold px-3 py-2 rounded-xl transition-colors">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="px-5 pb-5">
+        <button onclick="closeModal('gemini-modal')"
+          class="w-full bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold py-2.5 rounded-xl border border-white/10 transition-colors">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ APP.JS ═══════════════ -->
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>
